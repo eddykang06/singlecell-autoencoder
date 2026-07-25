@@ -140,11 +140,13 @@ def condition_to_dose(condition_label):
     """
     # Define dose mapping
     dose_map = {
+        "0": 0,
         "14": 0.25,
         "13": 0.33,
         "12": 0.50,
         "34": 0.75,
-        "1": 1
+        "1": 1,
+        "2": 2
     }
 
     # Count # of alpha characters
