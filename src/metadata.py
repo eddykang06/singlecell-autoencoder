@@ -156,7 +156,7 @@ def condition_to_dose(condition_label):
     if num_upper == 3:
         
         if "NDC" in condition_label:
-            return [np.nan, np.nan]
+            return [0, np.nan]
         
         # Find drug name using letter search
         first_alpha_idx = find_first_alpha(condition_label)
