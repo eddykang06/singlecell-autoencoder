@@ -1,10 +1,10 @@
-"""Model architectures"""
-
+"""AE implementation"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
+"""Data processing"""
 class TorchStandardScaler:
     """
     Custom standard scaler class compatible with torch tensors
@@ -36,8 +36,9 @@ class TorchStandardScaler:
         scaled = self.fit(tensor).transform(tensor)
 
         return scaled
-    
 
+
+"""Model architecture"""
 class SimpleAE(nn.Module):
 
     def __init__(self, input_dim, h_dim, latent_dim):
