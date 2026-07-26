@@ -19,6 +19,7 @@ class TorchStandardScaler:
         """
         self.means = tensor.mean(dim = 0)
         self.stds = tensor.std(dim = 0)
+        return self
 
     def transform(self, tensor):
         if self.means is None or self.stds is None:
@@ -69,6 +70,3 @@ class SimpleAE(nn.Module):
         x_hat = self.decode(z)
 
         return x_hat
-
-
-

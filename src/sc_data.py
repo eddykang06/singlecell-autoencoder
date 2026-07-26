@@ -40,8 +40,9 @@ def get_sc_data(path):
         df["drug"] = condition_to_drug_id(f)
         dfs.append(df)
 
-    # Concatenate all data
+    # Concatenate data and sort features
     cat = pd.concat(dfs, axis = 0, join = "outer")
     cat = cat.dropna(axis = 1, how = "all")
+    cat = cat.sort_index(axis = 1)
 
     return cat
