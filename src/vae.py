@@ -57,6 +57,21 @@ class MLPRegressor(nn.Module):
         return out
 
 
+class GradientReversal(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, lambda_adv):
+        ctx.lambda_adv = lambda_adv
+        return x.view_as(x)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        return -ctx.lambda_adv * grad_output, None
+
+
+def gradient_reverse(x, lambda_adv = 1.0):
+    return GradientReversal.apply(x, lambda_adv)
+
+
 """VAE architecture"""
 class CVAE(nn.Module):
     def __init__(self, input_dim, hidden_dim, latent_dim):
@@ -94,7 +109,7 @@ class CVAE(nn.Module):
         return mu, std
 
     def reparam(self, mu, std):
-        eps = torch.rand_like(std)
+        eps = torch.randn_like(std)
         new = mu + eps * std
         return new
 
@@ -106,13 +121,13 @@ class CVAE(nn.Module):
         out = self.decoder(z)
         return out
 
-    def forward(self, x, t, d):
+    def forward(self, x, d, t):
         time_embedding = self.time_embed(t)
         dose_embedding = self.dose_embed(d)
         mu, std = self.encode(x)
         z = self.reparam(mu, std)
-        h = self.time_compose(z, time_embedding)
         h = self.dose_compose(z, dose_embedding)
+        h = self.time_compose(h, time_embedding)
         x_hat = self.decode(h)
 
-        return x_hat
+        return x_hat, mu, std, z
