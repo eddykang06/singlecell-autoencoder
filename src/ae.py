@@ -4,52 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-"""Data processing"""
-class TorchStandardScaler:
-    """
-    Custom standard scaler class compatible with torch tensors
-    """
-    def __init__(self):
-        self.means = None
-        self.stds = None
-
-    def fit(self, tensor):
-        """
-        Note: Tensor must be sample x feature
-        """
-        self.means = tensor.mean(dim = 0)
-        self.stds = tensor.std(dim = 0)
-        return self
-
-    def transform(self, tensor):
-        if self.means is None or self.stds is None:
-            raise ValueError(f"Standard scaler has not been fitted")
-        if tensor.shape[1] != len(self.means):
-            raise KeyError(f"Input tensor has incorrect number of features")
-        
-        means = self.means.to(device = tensor.device, dtype = tensor.dtype)
-        stds = self.stds.to(device = tensor.device, dtype = tensor.dtype)
-        scaled = (tensor - means) / stds
-
-        return scaled
-
-    def fit_transform(self, tensor):
-        scaled = self.fit(tensor).transform(tensor)
-
-        return scaled
-
-    def inverse_transform(self, tensor):
-        if self.means is None or self.stds is None:
-            raise ValueError(f"Standard scaler has not been fitted")
-        if tensor.shape[1] != len(self.means):
-            raise KeyError(f"Input tensor has incorrect number of features")
-
-        means = self.means.to(device = tensor.device, dtype = tensor.dtype)
-        stds = self.stds.to(device = tensor.device, dtype = tensor.dtype)
-        unscaled = stds * tensor + means
-
-        return unscaled
-
 """Model architecture"""
 class SimpleAE(nn.Module):
 

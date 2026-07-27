@@ -57,6 +57,17 @@ class MLPRegressor(nn.Module):
         return out
 
 
+class LinearRegressor(nn.Module):
+    def __init__(self, input_dim):
+        super().__init__()
+        self.input_dim = input_dim
+        self.model = nn.Linear(input_dim, 1)
+
+    def forward(self, x):
+        out = self.model(x)
+        return out
+
+
 class GradientReversal(torch.autograd.Function):
     @staticmethod
     def forward(ctx, x, lambda_adv):
@@ -94,40 +105,47 @@ class CVAE(nn.Module):
             nn.ReLU()
         )
         self.fc_mu = nn.Linear(hidden_dim, latent_dim)
-        self.fc_std = nn.Linear(hidden_dim, latent_dim)
+        self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, input_dim),
-            nn.ReLU()
+            nn.Softplus()
         )
 
     def encode(self, x):
         h = self.encoder(x)
         mu = self.fc_mu(h)
-        std = self.fc_std(h)
-        return mu, std
+        logvar = self.fc_logvar(h).clamp(min = -20, max = 20)
+        return mu, logvar
 
-    def reparam(self, mu, std):
+    def reparam(self, mu, logvar, sample = True):
+        if not sample:
+            return mu
+
+        std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
         new = mu + eps * std
         return new
 
     def compose(self, z, time_embedding, dose_embedding):
-        out = self.compose(z, time_embedding)
-        out = self.compose(out, dose_embedding)
+        out = self.time_compose(z, time_embedding)
+        out = self.dose_compose(out, dose_embedding)
+        return out
     
     def decode(self, z):
         out = self.decoder(z)
         return out
 
-    def forward(self, x, d, t):
+    def forward(self, x, d, t, sample = None):
+        if sample is None:
+            sample = self.training
+
         time_embedding = self.time_embed(t)
         dose_embedding = self.dose_embed(d)
-        mu, std = self.encode(x)
-        z = self.reparam(mu, std)
-        h = self.dose_compose(z, dose_embedding)
-        h = self.time_compose(h, time_embedding)
+        mu, logvar = self.encode(x)
+        z = self.reparam(mu, logvar, sample = sample)
+        h = self.compose(z, time_embedding, dose_embedding)
         x_hat = self.decode(h)
 
-        return x_hat, mu, std, z
+        return x_hat, mu, logvar, z
