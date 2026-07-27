@@ -149,3 +149,38 @@ class CVAE(nn.Module):
         x_hat = self.decode(h)
 
         return x_hat, mu, logvar, z
+
+    @torch.no_grad()
+    def generate_samples(self, num_samples, d, t):
+        """
+        Note: simply provide a single dose d and single timepoint t
+        """
+        device = next(self.parameters()).device
+        dtype = next(self.parameters()).dtype
+
+        d = torch.as_tensor(d, dtype = dtype, device = device).expand(num_samples)
+        t = torch.as_tensor(t, dtype = dtype, device = device).expand(num_samples)
+
+        d = d.reshape(-1, 1)
+        t = t.reshape(-1, 1)
+
+        time_embedding = self.time_embed(t)
+        dose_embedding = self.dose_embed(d)
+
+        z = torch.randn(
+            num_samples, 
+            self.latent_dim,
+            dtype = dtype,
+            device = device
+        )
+        latent = self.compose(z, time_embedding, dose_embedding)
+        x_hat = self.decode(latent)
+
+        x_cpm = torch.expm1(x_hat)
+        x_cpm = (
+            1_000_000
+            * x_cpm
+            / x_cpm.sum(dim = 1, keepdim = True)
+        )
+
+        return x_cpm

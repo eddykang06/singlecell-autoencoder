@@ -123,6 +123,21 @@ def kl_loss_fn(
     return kl_loss
 
 
+def normalize_log_cpm(
+    x_hat: torch.Tensor,
+    library_size: float = 1_000_000.0
+):
+    """
+    Convert log1p expression to CPM, enforce a fixed library size per
+    sample, and return the normalized values to log1p space.
+    """
+    x_hat_cpm = torch.expm1(x_hat).clamp_min(0)
+    row_totals = x_hat_cpm.sum(dim = 1, keepdim = True).clamp_min(1e-8)
+    x_hat_cpm = library_size * x_hat_cpm / row_totals
+
+    return torch.log1p(x_hat_cpm)
+
+
 def train_cvae(
     train_df: pd.DataFrame, 
     val_df: pd.DataFrame,
@@ -197,6 +212,7 @@ def train_cvae(
 
             # Get reconstruction, latents, and adversarial preds
             x_hat, mu, logvar, z = model(x, d, t)
+            x_hat = normalize_log_cpm(x_hat)
             d_hat = dose_regressor(gradient_reverse(z, lambda_adv = adv_weight)) 
             t_hat = time_regressor(gradient_reverse(z, lambda_adv = adv_weight))
 
@@ -237,6 +253,7 @@ def train_cvae(
 
                 # Get reconstruction, latents, and adversarial preds
                 x_hat, mu, logvar, z = model(x, d, t)
+                x_hat = normalize_log_cpm(x_hat)
                 d_hat = dose_regressor(gradient_reverse(z, lambda_adv = adv_weight)) 
                 t_hat = time_regressor(gradient_reverse(z, lambda_adv = adv_weight))
 
@@ -262,6 +279,6 @@ def train_cvae(
 
         # Return loss every 10 
         if (epoch + 1) % 10 == 0:
-            print(f"epoch {epoch+1:3d} : Train VAE loss = {train_vae_losses[-1]:.4f}, Val MSE = {val_vae_losses[-1]:.4f}")
+            print(f"epoch {epoch+1:3d} : Train VAE loss = {train_vae_losses[-1]:.4f}, Val VAE loss = {val_vae_losses[-1]:.4f}")
     
     return model, train_vae_losses, train_adv_losses, val_vae_losses, val_adv_losses
