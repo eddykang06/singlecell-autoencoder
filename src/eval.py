@@ -23,6 +23,8 @@ def plot_latent_pca(
         model    : Trained CVAE model
         color_by : Metadata column to color PCA plot by
     """
+    device = next(model.parameters()).device
+
     meta = data.iloc[:, ~data.columns.str.contains("SP")].reset_index()
     all_sc = data.iloc[:, data.columns.str.contains("SP")]
     all_sc = torch.tensor(all_sc.to_numpy()).float().to(device)
@@ -50,7 +52,7 @@ def plot_latent_pca(
     ax.set_ylabel(f"PC2 ({var2 * 100:.2f} %)")
     ax.set_title("PCA on VAE latent means")
 
-    
+
 def get_composed_latents(
     model: nn.Module,
     d: float,
