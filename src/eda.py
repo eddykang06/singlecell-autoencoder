@@ -12,7 +12,13 @@ def plot_pseudo_v_bulk(
     dose: float
 ):
     """
-    Plot psueodbulked profiles vs bulk profiles
+    Plot psueodbulked profiles vs bulk profiles.
+
+    Args:
+        sc_data   : Single-cell CPM dataframe with metadata
+        bulk_data : Bulk TPM dataframe with metadata
+        timepoint : Data timepoint
+        dose      : CEF dosage
     """
     # Filter and get pseudobulk
     sc_mask = (sc_data["timepoint"] == timepoint) & (sc_data["dose"] == dose)
