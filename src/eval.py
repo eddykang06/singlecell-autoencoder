@@ -10,6 +10,47 @@ from scipy.stats import pearsonr, spearmanr
 from sklearn.decomposition import PCA
 
 
+def plot_latent_pca(
+    data: pd.DataFrame,
+    model: nn.Module,
+    color_by: str
+):
+    """
+    Plot PCA of latent means of all datapoints using trained CVAE encoder module
+
+    Args:
+        data     : Single-cell data with metadata
+        model    : Trained CVAE model
+        color_by : Metadata column to color PCA plot by
+    """
+    meta = data.iloc[:, ~data.columns.str.contains("SP")].reset_index()
+    all_sc = data.iloc[:, data.columns.str.contains("SP")]
+    all_sc = torch.tensor(all_sc.to_numpy()).float().to(device)
+
+    latents = model.encode(all_sc)[0]
+
+    latents = latents.detach().to("cpu").numpy()
+    latent_pca = PCA(n_components = 2)
+    proj = latent_pca.fit_transform(latents)
+    var1, var2 = latent_pca.explained_variance_ratio_
+
+    res = pd.DataFrame(proj)
+    res = pd.concat((res, meta), axis = 1)
+    res = res.rename(columns = {0: f"PC1", 1: f"PC2"})
+
+    fig, ax = plt.subplots()
+    sns.scatterplot(
+        res, 
+        x = "PC1",
+        y = "PC2",
+        hue = color_by,
+        s = 20
+    )
+    ax.set_xlabel(f"PC1 ({var1 * 100:.2f} %)")
+    ax.set_ylabel(f"PC2 ({var2 * 100:.2f} %)")
+    ax.set_title("PCA on VAE latent means")
+
+    
 def get_composed_latents(
     model: nn.Module,
     d: float,
