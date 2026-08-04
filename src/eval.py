@@ -139,7 +139,8 @@ def plot_composed_latent_pca(
         x = "PC1",
         y = "PC2",
         hue = color_by,
-        s = 20
+        s = 15,
+        alpha = 0.7
     )
     ax.set_xlabel(f"PC1 ({var1 * 100:.2f} %)")
     ax.set_ylabel(f"PC2 ({var2 * 100:.2f} %)")
