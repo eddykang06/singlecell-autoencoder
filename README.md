@@ -6,7 +6,7 @@ This repository contains the implementation and initial evaluation of a conditio
 ## Model description
 The model uses a CVAE architecture, with condition embeddings injected in the latent space after latent sampling.
 
-[insert image]
+![Model diagram](figures/model.png)
 
 Key design features:
 - Condition information embedding injected in latent space, allowing simple inference
