@@ -41,11 +41,13 @@ The model was trained on 80,000 *Streptococcus pneumoniae* scRNA-seq profiles co
 
 **1. Clone the repository**
 ```bash 
-git clone https://github.com/eddykang06/singlecell-CVAE.git cd singlecell-CVAE
+git clone https://github.com/eddykang06/singlecell-CVAE.git
+cd singlecell-CVAE
 ``` 
 **2. Create and activate the environment**
 ```bash 
-conda create -n singlecell-cvae python -y conda activate singlecell-cvae
+conda create -n singlecell-cvae python -y
+conda activate singlecell-cvae
 ```
 **3. Install dependencies**
 ```bash
