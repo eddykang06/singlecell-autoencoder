@@ -1,7 +1,7 @@
 # Modeling bacterial single-cell expression
 
 ## Overview
-This repository contains the implementation and initial evaluation of a conditional variational autoencoder (CVAE) trained to predict bacterial single-cell expression profiles in response to cefepime treatment.
+This repository contains the implementation and initial evaluation of a conditional variational autoencoder (CVAE) trained to predict single-cell expression profiles of **Streptococcus pneumoniae** in response to cefepime treatment.
 
 ## Model description
 The model uses a CVAE architecture, with condition embeddings injected in the latent space after latent sampling.
