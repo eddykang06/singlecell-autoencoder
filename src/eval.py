@@ -21,7 +21,7 @@ def plot_latent_pca(
     Args:
         data     : Single-cell data with metadata
         model    : Trained CVAE model
-        color_by : Metadata column to color PCA plot by
+        color_by : Metadata column to color PCA plot by ("dose" or "timepoint")
     """
     device = next(model.parameters()).device
 
@@ -62,7 +62,7 @@ def get_composed_latents(
     """
     Get samples from latent space with dose and time information composed
 
-    Note: later, add this as a class method in CVAE
+    Note: later, add this as a class method in CVAE to make latent sampling easier
 
     Args:
         model       : Trained CVAE model
@@ -153,7 +153,7 @@ def plot_composed_latent_pca(
         timepoints  : List of timepoints to sample from
         doses       : List of doses to sample from
         num_samples : # of samples to draw from each condition
-        color_by    : Metadata column to color plot by
+        color_by    : Metadata column to color plot by ("dose" or "timepoint")
         title       : PCA plot title
 
     """

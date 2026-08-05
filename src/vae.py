@@ -6,6 +6,9 @@ import torch.nn.functional as F
 
 """Condition embeddings"""
 class LinearEmbed(nn.Module):
+    """
+    Simple mapping from number to vector
+    """
     def __init__(self, out_dim):
         super().__init__()
         self.out_dim = out_dim 
@@ -17,6 +20,9 @@ class LinearEmbed(nn.Module):
 
 
 class MLPEmbed(nn.Module):
+    """
+    MLP mapping from number to vector
+    """
     def __init__(self, out_dim):
         super().__init__()
         self.out_dim = out_dim
@@ -31,6 +37,9 @@ class MLPEmbed(nn.Module):
 
 
 class FiLM(nn.Module): 
+    """
+    Scale+shift composition to combine basal state with condition embedding
+    """
     def __init__(self, embedding_dim):
         super().__init__()
         self.embedding_dim = embedding_dim
@@ -44,6 +53,9 @@ class FiLM(nn.Module):
 
 """Adversarial regressor"""
 class MLPRegressor(nn.Module):
+    """
+    Simple MLP regression module
+    """
     def __init__(self, input_dim):
         super().__init__()
         self.input_dim = input_dim
@@ -58,6 +70,9 @@ class MLPRegressor(nn.Module):
 
 
 class LinearRegressor(nn.Module):
+    """
+    Simple linear regressor.
+    """
     def __init__(self, input_dim):
         super().__init__()
         self.input_dim = input_dim
@@ -69,6 +84,9 @@ class LinearRegressor(nn.Module):
 
 
 class GradientReversal(torch.autograd.Function):
+    """
+    Gradient reversal for usage on the adversarial loss function
+    """
     @staticmethod
     def forward(ctx, x, lambda_adv):
         ctx.lambda_adv = lambda_adv
@@ -105,7 +123,7 @@ class CVAE(nn.Module):
             nn.ReLU()
         )
         self.fc_mu = nn.Linear(hidden_dim, latent_dim)
-        self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
+        self.fc_logvar = nn.Linear(hidden_dim, latent_dim) # Log variance for stability
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
@@ -113,12 +131,14 @@ class CVAE(nn.Module):
             nn.Softplus()
         )
 
+    # Encoding x to latent mean and variance
     def encode(self, x):
         h = self.encoder(x)
         mu = self.fc_mu(h)
         logvar = self.fc_logvar(h).clamp(min = -20, max = 20)
         return mu, logvar
 
+    # Reparameterization trick to sample from latent distribution
     def reparam(self, mu, logvar, sample = True):
         if not sample:
             return mu
@@ -128,11 +148,13 @@ class CVAE(nn.Module):
         new = mu + eps * std
         return new
 
+    # Composing latent sample with condition embeddings in the latent space
     def compose(self, z, time_embedding, dose_embedding):
         out = self.time_compose(z, time_embedding)
         out = self.dose_compose(out, dose_embedding)
         return out
-    
+
+    # Decoding to obtain a gene expression profile
     def decode(self, z):
         out = self.decoder(z)
         return out
@@ -150,6 +172,7 @@ class CVAE(nn.Module):
 
         return x_hat, mu, logvar, z
 
+    # Inference-time generation of new samples from trained VAE for specified does, time
     @torch.no_grad()
     def generate_samples(self, num_samples, d, t):
         """

@@ -12,7 +12,7 @@ def plot_pseudo_v_bulk(
     dose: float
 ):
     """
-    Plot psueodbulked profiles vs bulk profiles.
+    Plot psueodbulked profiles vs bulk profiles to measure correlation.
 
     Args:
         sc_data   : Single-cell CPM dataframe with metadata

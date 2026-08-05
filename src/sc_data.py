@@ -160,6 +160,3 @@ def get_standard_scaler(
     scaler.fit(X_train)
 
     return scaler
-
-    
-    
